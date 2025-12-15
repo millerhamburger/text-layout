@@ -6,7 +6,7 @@ export interface FieldItem {
   format?: string;
 }
 
-export type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum' | 'dateTimeFormat';
+export type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum' | 'dateTimeFormat' | 'serialsize';
 
 export interface Segment {
   type: SegmentType;
@@ -187,9 +187,19 @@ export class FieldOrchestrator {
         const element = node as HTMLElement;
         if (element.classList.contains('fo-tag')) {
           const type = (element.dataset.type as SegmentType) || 'variable';
+          let itemValue: any = element.dataset.value || '';
+          
+          // 如果是流水号，尝试转为数字
+          if (type === 'serialsize') {
+             const num = Number(itemValue);
+             if (!isNaN(num)) {
+                 itemValue = num;
+             }
+          }
+
           const item: FieldItem = {
             label: element.dataset.label || '',
-            value: element.dataset.value || ''
+            value: itemValue
           };
           if (element.dataset.code) {
              item.code = element.dataset.code;

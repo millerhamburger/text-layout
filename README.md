@@ -5,8 +5,9 @@
 ## 特性
 
 - 📝 **混合编辑**：支持普通文本与结构化 Token 混合排版。
-- 🧩 **多类型支持**：内置支持变量 (Variable)、枚举 (Enum)、字典 (Dictionary)、日期时间 (DateTime) 四种类型。
+- 🧩 **多类型支持**：内置支持变量 (Variable)、枚举 (Enum)、字典 (Dictionary)、日期时间 (DateTime)、流水号 (SerialSize) 五种类型。
 - 📅 **日期格式**：支持自定义日期时间格式 (如 `YYYY-MM-DD HH:mm:ss`)。
+- 🔢 **流水号**：支持定义流水号长度（value 为数值）。
 - 🔄 **数据映射**：枚举类型支持 Value 到 Label 的映射关系存储 (如 `{ 1: '男', 2: '女' }`)。
 - 💾 **结构化输出**：实时输出结构化的 JSON 数据 (Segments)，便于后端存储和处理。
 - ⌨️ **原生体验**：基于 ContentEditable，支持原生光标移动、删除、复制粘贴（自动去除格式）。
@@ -68,6 +69,12 @@ orchestrator.insertToken('dateTimeFormat', {
   label: '创建时间',
   value: 'create_time',
   format: 'YYYY-MM-DD HH:mm:ss'
+});
+
+// 插入流水号 (value为长度)
+orchestrator.insertToken('serialsize', {
+  label: '流水号(6位)',
+  value: 6
 });
 ```
 
@@ -186,7 +193,7 @@ const App = () => {
 
 - **`insertToken(type: SegmentType, item: FieldItem)`**
   在光标处插入一个 Token。
-  - `type`: `'variable' | 'enum' | 'dictionary' | 'dateTimeFormat' | 'text'`
+  - `type`: `'variable' | 'enum' | 'dictionary' | 'dateTimeFormat' | 'serialsize' | 'text'`
   - `item`: `{ label: string, value: any, code?: string, mapping?: Record<string|number, string>, format?: string }`
 
 - **`setValue(segments: Segment[])`**
@@ -205,11 +212,11 @@ const App = () => {
 ### 类型定义
 
 ```typescript
-type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum' | 'dateTimeFormat';
+type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum' | 'dateTimeFormat' | 'serialsize';
 
 interface FieldItem {
   label: string;
-  value: any;
+  value: any; // 变量/字典/枚举/日期时间为string，流水号(serialsize)为number
   code?: string; // 字典编码，如 'CITY_DICT'
   mapping?: Record<string | number, string>; // 枚举映射，如 {1: '男', 2: '女'}
   format?: string; // 日期格式，如 'YYYY-MM-DD'

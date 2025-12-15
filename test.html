@@ -41,6 +41,7 @@
         .btn-enum { color: #fa8c16; border-color: #ffd591; background: #fff7e6; }
         .btn-dict { color: #722ed1; border-color: #d3adf7; background: #f9f0ff; }
         .btn-date { color: #52c41a; border-color: #b7eb8f; background: #f6ffed; }
+        .btn-serial { color: #eb2f96; border-color: #ffadd2; background: #fff0f6; }
         
         #output {
             margin-top: 20px;
@@ -77,6 +78,12 @@
             <div class="group-title">日期时间 (DateTime)</div>
             <button class="btn-date" onclick="insertToken('dateTimeFormat', 'createTime', '创建时间', { format: 'YYYY-MM-DD' })">插入 [创建时间] (YYYY-MM-DD)</button>
             <button class="btn-date" onclick="insertToken('dateTimeFormat', 'updateTime', '更新时间', { format: 'YYYY-MM-DD HH:mm:ss' })">插入 [更新时间] (Full)</button>
+        </div>
+
+        <div class="group">
+            <div class="group-title">流水号 (SerialSize)</div>
+            <button class="btn-serial" onclick="insertToken('serialsize', 6, '流水号6位')">插入 [流水号6位]</button>
+            <button class="btn-serial" onclick="insertToken('serialsize', 8, '流水号8位')">插入 [流水号8位]</button>
         </div>
 
         <div class="group">
@@ -121,6 +128,8 @@
                 { type: 'dictionary', value: { label: '城市', value: 'city_id', code: 'CITY_DICT' } },
                 { type: 'text', value: '，创建于 ' },
                 { type: 'dateTimeFormat', value: { label: '创建时间', value: 'createTime', format: 'YYYY-MM-DD' } },
+                { type: 'text', value: '，流水号：' },
+                { type: 'serialsize', value: { label: '流水号', value: 6 } },
                 { type: 'text', value: '。' }
             ];
             window.orchestrator.setValue(demoData);
