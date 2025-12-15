@@ -68,8 +68,8 @@
 
         <div class="group">
             <div class="group-title">字典 (Dictionary)</div>
-            <button class="btn-dict" onclick="insertToken('dictionary', '010', '北京', { code: 'city_code' })">插入 [北京] (Code: city_code)</button>
-            <button class="btn-dict" onclick="insertToken('dictionary', 'male', '男', { code: 'gender' })">插入 [男] (Code: gender)</button>
+            <button class="btn-dict" onclick="insertToken('dictionary', 'city_id', '城市', { code: 'CITY_DICT' })">插入 [城市] (Code: CITY_DICT)</button>
+            <button class="btn-dict" onclick="insertToken('dictionary', 'level', '职级', { code: 'LEVEL_DICT' })">插入 [职级] (Code: LEVEL_DICT)</button>
         </div>
 
         <div class="group">
@@ -110,8 +110,8 @@
                 { type: 'variable', value: { label: '姓名', value: 'name' } },
                 { type: 'text', value: ' (性别: ' },
                 { type: 'enum', value: { label: '性别', value: 'gender', mapping: { 1: '男', 2: '女' } } },
-                { type: 'text', value: ') 所在的城市代码为 ' },
-                { type: 'dictionary', value: { label: '城市代码', value: '010', code: 'city_code' } },
+                { type: 'text', value: ') 所在的城市为 ' },
+                { type: 'dictionary', value: { label: '城市', value: 'city_id', code: 'CITY_DICT' } },
                 { type: 'text', value: '。' }
             ];
             window.orchestrator.setValue(demoData);

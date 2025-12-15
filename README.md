@@ -57,9 +57,9 @@ orchestrator.insertToken('enum', {
 
 // 插入字典（带Code）
 orchestrator.insertToken('dictionary', {
-  label: '北京',
-  value: '010',
-  code: 'city_code'
+  label: '城市',
+  value: 'city_id',
+  code: 'CITY_DICT'
 });
 ```
 
@@ -202,7 +202,7 @@ type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum';
 interface FieldItem {
   label: string;
   value: any;
-  code?: string; // 字典编码，如 'city_code'
+  code?: string; // 字典编码，如 'CITY_DICT'
   mapping?: Record<string | number, string>; // 枚举映射，如 {1: '男', 2: '女'}
 }
 
