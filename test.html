@@ -62,14 +62,14 @@
         
         <div class="group">
             <div class="group-title">枚举 (Enum)</div>
-            <button class="btn-enum" onclick="insertToken('enum', 'gender', '性别', { 1: '男', 2: '女' })">插入 [性别] (带映射)</button>
-            <button class="btn-enum" onclick="insertToken('enum', 'status', '状态', { 0: '停用', 1: '启用' })">插入 [状态] (带映射)</button>
+            <button class="btn-enum" onclick="insertToken('enum', 'gender', '性别', { mapping: { 1: '男', 2: '女' } })">插入 [性别] (带映射)</button>
+            <button class="btn-enum" onclick="insertToken('enum', 'status', '状态', { mapping: { 0: '停用', 1: '启用' } })">插入 [状态] (带映射)</button>
         </div>
 
         <div class="group">
             <div class="group-title">字典 (Dictionary)</div>
-            <button class="btn-dict" onclick="insertToken('dictionary', 'city_code', '城市代码')">插入 [城市代码]</button>
-            <button class="btn-dict" onclick="insertToken('dictionary', 'dept_id', '部门ID')">插入 [部门ID]</button>
+            <button class="btn-dict" onclick="insertToken('dictionary', '010', '北京', { code: 'city_code' })">插入 [北京] (Code: city_code)</button>
+            <button class="btn-dict" onclick="insertToken('dictionary', 'male', '男', { code: 'gender' })">插入 [男] (Code: gender)</button>
         </div>
 
         <div class="group">
@@ -100,8 +100,8 @@
             }
         });
 
-        window.insertToken = (type, value, label, mapping) => {
-            window.orchestrator.insertToken(type, { label, value, mapping });
+        window.insertToken = (type, value, label, extra = {}) => {
+            window.orchestrator.insertToken(type, { label, value, ...extra });
         };
 
         window.setDemoValue = () => {
@@ -111,7 +111,7 @@
                 { type: 'text', value: ' (性别: ' },
                 { type: 'enum', value: { label: '性别', value: 'gender', mapping: { 1: '男', 2: '女' } } },
                 { type: 'text', value: ') 所在的城市代码为 ' },
-                { type: 'dictionary', value: { label: '城市代码', value: 'city_code' } },
+                { type: 'dictionary', value: { label: '城市代码', value: '010', code: 'city_code' } },
                 { type: 'text', value: '。' }
             ];
             window.orchestrator.setValue(demoData);

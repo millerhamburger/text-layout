@@ -1,6 +1,7 @@
 export interface FieldItem {
   label: string;
   value: any;
+  code?: string;
   mapping?: Record<string | number, string>;
 }
 
@@ -81,6 +82,9 @@ export class FieldOrchestrator {
     span.dataset.type = type;
     span.dataset.label = item.label;
     span.dataset.value = String(item.value); // Store value in dataset
+    if (item.code) {
+      span.dataset.code = item.code;
+    }
     if (item.mapping) {
       span.dataset.mapping = JSON.stringify(item.mapping);
     }
@@ -183,6 +187,9 @@ export class FieldOrchestrator {
             label: element.dataset.label || '',
             value: element.dataset.value || ''
           };
+          if (element.dataset.code) {
+             item.code = element.dataset.code;
+          }
           if (element.dataset.mapping) {
              try {
                  item.mapping = JSON.parse(element.dataset.mapping);
