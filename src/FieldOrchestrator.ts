@@ -1,11 +1,19 @@
-export interface FieldVariable {
+export interface FieldItem {
   label: string;
   value: any;
+  mapping?: Record<string | number, string>;
+}
+
+export type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum';
+
+export interface Segment {
+  type: SegmentType;
+  value: string | FieldItem;
 }
 
 export interface OrchestratorOptions {
   container: HTMLElement;
-  onChange?: (value: string, segments: Array<{ type: 'text' | 'variable'; value: string | FieldVariable }>) => void;
+  onChange?: (value: string, segments: Array<Segment>) => void;
   placeholder?: string;
 }
 
@@ -47,32 +55,38 @@ export class FieldOrchestrator {
     this.container.appendChild(this.editor);
   }
 
-  private createVariableNode(variable: FieldVariable): HTMLElement {
+  private createTokenNode(type: SegmentType, item: FieldItem): HTMLElement {
     const span = document.createElement('span');
-    span.className = 'fo-variable-tag';
+    span.className = `fo-tag fo-tag-${type}`;
     span.contentEditable = 'false'; // 关键：设为不可编辑，作为一个整体
-    span.dataset.label = variable.label;
-    span.dataset.value = String(variable.value); // Store value in dataset
-    span.innerText = variable.label;
+    span.dataset.type = type;
+    span.dataset.label = item.label;
+    span.dataset.value = String(item.value); // Store value in dataset
+    if (item.mapping) {
+      span.dataset.mapping = JSON.stringify(item.mapping);
+    }
+    span.innerText = item.label;
     return span;
   }
 
   /**
-   * 插入变量
-   * @param variable 变量对象
+   * 插入Token (变量/字典/枚举)
+   * @param type 类型
+   * @param item 数据对象
    */
-  public insertVariable(variable: FieldVariable) {
+  public insertToken(type: SegmentType, item: FieldItem) {
+    if (type === 'text') return; // 文本通过输入插入
+
     this.editor.focus();
 
-    // 创建变量标签
-    const span = this.createVariableNode(variable);
+    // 创建标签
+    const span = this.createTokenNode(type, item);
 
     // 获取当前光标位置
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
       // 如果没有焦点，追加到最后
       this.editor.appendChild(span);
-      // 插入一个零宽字符或空格，方便光标移动
       this.editor.appendChild(document.createTextNode('\u00A0')); 
     } else {
       const range = selection.getRangeAt(0);
@@ -104,17 +118,24 @@ export class FieldOrchestrator {
   }
 
   /**
+   * 兼容旧API: 插入变量
+   */
+  public insertVariable(variable: FieldItem) {
+      this.insertToken('variable', variable);
+  }
+
+  /**
    * 设置值
    * @param segments 结构化数据
    */
-  public setValue(segments: Array<{ type: 'text' | 'variable'; value: string | FieldVariable }>) {
+  public setValue(segments: Array<Segment>) {
     this.editor.innerHTML = ''; // 清空内容
     segments.forEach(segment => {
       if (segment.type === 'text') {
          this.editor.appendChild(document.createTextNode(String(segment.value)));
-      } else if (segment.type === 'variable') {
-         const variable = segment.value as FieldVariable;
-         const span = this.createVariableNode(variable);
+      } else {
+         const item = segment.value as FieldItem;
+         const span = this.createTokenNode(segment.type, item);
          this.editor.appendChild(span);
       }
     });
@@ -125,7 +146,7 @@ export class FieldOrchestrator {
    * 获取当前值
    */
   public getValue() {
-    const segments: Array<{ type: 'text' | 'variable'; value: string | FieldVariable }> = [];
+    const segments: Array<Segment> = [];
     let textContent = '';
 
     this.editor.childNodes.forEach((node) => {
@@ -137,13 +158,21 @@ export class FieldOrchestrator {
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         const element = node as HTMLElement;
-        if (element.classList.contains('fo-variable-tag')) {
-          const variable: FieldVariable = {
+        if (element.classList.contains('fo-tag')) {
+          const type = (element.dataset.type as SegmentType) || 'variable';
+          const item: FieldItem = {
             label: element.dataset.label || '',
             value: element.dataset.value || ''
           };
-          segments.push({ type: 'variable', value: variable });
-          textContent += `\${${variable.value}}`; // 使用 value 生成文本
+          if (element.dataset.mapping) {
+             try {
+                 item.mapping = JSON.parse(element.dataset.mapping);
+             } catch (e) {
+                 console.error('Failed to parse mapping', e);
+             }
+          }
+          segments.push({ type, value: item });
+          textContent += `\${${item.value}}`; // 简化的文本表示，暂不区分类型前缀
         } else {
             // 处理可能的其他标签（如换行div），视为换行或文本
             if (element.tagName === 'DIV' || element.tagName === 'P' || element.tagName === 'BR') {

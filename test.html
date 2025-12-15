@@ -14,11 +14,33 @@
         .controls {
             margin-bottom: 20px;
         }
+        .group {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .group-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #666;
+        }
         button {
             padding: 5px 10px;
             margin-right: 10px;
             cursor: pointer;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 3px;
         }
+        button:hover {
+            background: #f0f0f0;
+        }
+        .btn-var { color: #1890ff; border-color: #91d5ff; background: #e6f7ff; }
+        .btn-enum { color: #fa8c16; border-color: #ffd591; background: #fff7e6; }
+        .btn-dict { color: #722ed1; border-color: #d3adf7; background: #f9f0ff; }
+        
         #output {
             margin-top: 20px;
             white-space: pre-wrap;
@@ -32,11 +54,29 @@
     <h1>字段编排测试</h1>
     
     <div class="controls">
-        <button onclick="insertVar('name', '姓名')">插入 [姓名]</button>
-        <button onclick="insertVar('age', '年龄')">插入 [年龄]</button>
-        <button onclick="insertVar('city', '城市')">插入 [城市]</button>
-        <button onclick="setDemoValue()">设置预设值</button>
-        <button onclick="orchestrator.clear()">清空</button>
+        <div class="group">
+            <div class="group-title">变量 (Variable)</div>
+            <button class="btn-var" onclick="insertToken('variable', 'name', '姓名')">插入 [姓名]</button>
+            <button class="btn-var" onclick="insertToken('variable', 'age', '年龄')">插入 [年龄]</button>
+        </div>
+        
+        <div class="group">
+            <div class="group-title">枚举 (Enum)</div>
+            <button class="btn-enum" onclick="insertToken('enum', 'gender', '性别', { 1: '男', 2: '女' })">插入 [性别] (带映射)</button>
+            <button class="btn-enum" onclick="insertToken('enum', 'status', '状态', { 0: '停用', 1: '启用' })">插入 [状态] (带映射)</button>
+        </div>
+
+        <div class="group">
+            <div class="group-title">字典 (Dictionary)</div>
+            <button class="btn-dict" onclick="insertToken('dictionary', 'city_code', '城市代码')">插入 [城市代码]</button>
+            <button class="btn-dict" onclick="insertToken('dictionary', 'dept_id', '部门ID')">插入 [部门ID]</button>
+        </div>
+
+        <div class="group">
+            <div class="group-title">操作</div>
+            <button onclick="setDemoValue()">设置复杂预设值</button>
+            <button onclick="orchestrator.clear()">清空</button>
+        </div>
     </div>
 
     <div id="editor-container"></div>
@@ -51,7 +91,7 @@
 
         window.orchestrator = new FieldOrchestrator({
             container: document.getElementById('editor-container'),
-            placeholder: '请输入内容，点击上方按钮插入变量...',
+            placeholder: '请输入内容，点击上方按钮插入不同类型的字段...',
             onChange: (text, segments) => {
                 outputEl.innerText = JSON.stringify({
                     text,
@@ -60,17 +100,19 @@
             }
         });
 
-        window.insertVar = (value, label) => {
-            window.orchestrator.insertVariable({ label, value });
+        window.insertToken = (type, value, label, mapping) => {
+            window.orchestrator.insertToken(type, { label, value, mapping });
         };
 
         window.setDemoValue = () => {
             const demoData = [
-                { type: 'text', value: '你好，我是' },
+                { type: 'text', value: '员工 ' },
                 { type: 'variable', value: { label: '姓名', value: 'name' } },
-                { type: 'text', value: '，今年' },
-                { type: 'variable', value: { label: '年龄', value: 'age' } },
-                { type: 'text', value: '岁。' }
+                { type: 'text', value: ' (性别: ' },
+                { type: 'enum', value: { label: '性别', value: 'gender', mapping: { 1: '男', 2: '女' } } },
+                { type: 'text', value: ') 所在的城市代码为 ' },
+                { type: 'dictionary', value: { label: '城市代码', value: 'city_code' } },
+                { type: 'text', value: '。' }
             ];
             window.orchestrator.setValue(demoData);
         };
