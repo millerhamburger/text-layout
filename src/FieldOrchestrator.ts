@@ -29,30 +29,49 @@ export class FieldOrchestrator {
     this.init();
   }
 
+  private handlePaste = (e: ClipboardEvent) => {
+    e.preventDefault();
+    const text = e.clipboardData?.getData('text/plain') || '';
+    document.execCommand('insertText', false, text);
+  };
+
+  private handleInput = () => {
+    this.triggerChange();
+  };
+
+  private handleContainerClick = (e: MouseEvent) => {
+    if (e.target === this.container) {
+      this.editor.focus();
+    }
+  };
+
   private init() {
     this.editor.className = 'fo-editor';
     this.editor.contentEditable = 'true';
     this.editor.setAttribute('placeholder', this.options.placeholder || '请输入内容...');
     
     // 处理粘贴事件，去除格式
-    this.editor.addEventListener('paste', (e) => {
-      e.preventDefault();
-      const text = e.clipboardData?.getData('text/plain') || '';
-      document.execCommand('insertText', false, text);
-    });
+    this.editor.addEventListener('paste', this.handlePaste);
 
-    this.editor.addEventListener('input', () => {
-      this.triggerChange();
-    });
+    this.editor.addEventListener('input', this.handleInput);
 
     // 确保点击编辑器时聚焦
-    this.container.addEventListener('click', (e) => {
-      if (e.target === this.container) {
-        this.editor.focus();
-      }
-    });
+    this.container.addEventListener('click', this.handleContainerClick);
 
     this.container.appendChild(this.editor);
+  }
+
+  /**
+   * 销毁实例，清理事件监听和DOM
+   */
+  public destroy() {
+    this.editor.removeEventListener('paste', this.handlePaste);
+    this.editor.removeEventListener('input', this.handleInput);
+    this.container.removeEventListener('click', this.handleContainerClick);
+    
+    if (this.editor.parentNode === this.container) {
+      this.container.removeChild(this.editor);
+    }
   }
 
   private createTokenNode(type: SegmentType, item: FieldItem): HTMLElement {
