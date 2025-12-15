@@ -54,6 +54,13 @@ orchestrator.insertToken('enum', {
   value: 'gender',
   mapping: { 1: '男', 2: '女' } 
 });
+
+// 插入字典（带Code）
+orchestrator.insertToken('dictionary', {
+  label: '北京',
+  value: '010',
+  code: 'city_code'
+});
 ```
 
 ## 在 React 中使用
@@ -172,7 +179,7 @@ const App = () => {
 - **`insertToken(type: SegmentType, item: FieldItem)`**
   在光标处插入一个 Token。
   - `type`: `'variable' | 'enum' | 'dictionary' | 'text'`
-  - `item`: `{ label: string, value: any, mapping?: Record<string|number, string> }`
+  - `item`: `{ label: string, value: any, code?: string, mapping?: Record<string|number, string> }`
 
 - **`setValue(segments: Segment[])`**
   设置编辑器的内容。用于回显数据。
@@ -195,6 +202,7 @@ type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum';
 interface FieldItem {
   label: string;
   value: any;
+  code?: string; // 字典编码，如 'city_code'
   mapping?: Record<string | number, string>; // 枚举映射，如 {1: '男', 2: '女'}
 }
 
