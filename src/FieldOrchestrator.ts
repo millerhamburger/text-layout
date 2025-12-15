@@ -3,9 +3,10 @@ export interface FieldItem {
   value: any;
   code?: string;
   mapping?: Record<string | number, string>;
+  format?: string;
 }
 
-export type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum';
+export type SegmentType = 'text' | 'variable' | 'dictionary' | 'enum' | 'dateTimeFormat';
 
 export interface Segment {
   type: SegmentType;
@@ -87,6 +88,9 @@ export class FieldOrchestrator {
     }
     if (item.mapping) {
       span.dataset.mapping = JSON.stringify(item.mapping);
+    }
+    if (item.format) {
+      span.dataset.format = item.format;
     }
     span.innerText = item.label;
     return span;
@@ -189,6 +193,9 @@ export class FieldOrchestrator {
           };
           if (element.dataset.code) {
              item.code = element.dataset.code;
+          }
+          if (element.dataset.format) {
+             item.format = element.dataset.format;
           }
           if (element.dataset.mapping) {
              try {
