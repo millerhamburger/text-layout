@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Orchestrator Test</title>
+    <link rel="stylesheet" href="./dist/index.css">
+    <style>
+        body {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 5px 10px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            border: 1px solid #eee;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>字段编排测试</h1>
+    
+    <div class="controls">
+        <button onclick="insertVar('name', '姓名')">插入 [姓名]</button>
+        <button onclick="insertVar('age', '年龄')">插入 [年龄]</button>
+        <button onclick="insertVar('city', '城市')">插入 [城市]</button>
+        <button onclick="setDemoValue()">设置预设值</button>
+        <button onclick="orchestrator.clear()">清空</button>
+    </div>
+
+    <div id="editor-container"></div>
+
+    <h3>实时输出结果：</h3>
+    <div id="output"></div>
+
+    <script type="module">
+        import { FieldOrchestrator } from './dist/index.esm.js';
+
+        const outputEl = document.getElementById('output');
+
+        window.orchestrator = new FieldOrchestrator({
+            container: document.getElementById('editor-container'),
+            placeholder: '请输入内容，点击上方按钮插入变量...',
+            onChange: (text, segments) => {
+                outputEl.innerText = JSON.stringify({
+                    text,
+                    segments
+                }, null, 2);
+            }
+        });
+
+        window.insertVar = (value, label) => {
+            window.orchestrator.insertVariable({ label, value });
+        };
+
+        window.setDemoValue = () => {
+            const demoData = [
+                { type: 'text', value: '你好，我是' },
+                { type: 'variable', value: { label: '姓名', value: 'name' } },
+                { type: 'text', value: '，今年' },
+                { type: 'variable', value: { label: '年龄', value: 'age' } },
+                { type: 'text', value: '岁。' }
+            ];
+            window.orchestrator.setValue(demoData);
+        };
+    </script>
+</body>
+</html>
