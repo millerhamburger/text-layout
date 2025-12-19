@@ -104,41 +104,48 @@ export class FieldOrchestrator {
   public insertToken(type: SegmentType, item: FieldItem) {
     if (type === 'text') return; // 文本通过输入插入
 
+    // 先获取选区，判断焦点位置
+    const selection = window.getSelection();
+    let range = (selection && selection.rangeCount > 0) ? selection.getRangeAt(0) : null;
+    const isInside = range && this.editor.contains(range.commonAncestorContainer);
+
     this.editor.focus();
 
     // 创建标签
     const span = this.createTokenNode(type, item);
+    const space = document.createTextNode('\u00A0');
 
-    // 获取当前光标位置
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      // 如果没有焦点，追加到最后
+    if (!isInside) {
+      // 如果没有焦点或焦点不在编辑器内，追加到最后
       this.editor.appendChild(span);
-      this.editor.appendChild(document.createTextNode('\u00A0')); 
-    } else {
-      const range = selection.getRangeAt(0);
+      this.editor.appendChild(space);
       
-      // 检查光标是否在编辑器内
-      if (!this.editor.contains(range.commonAncestorContainer)) {
-         this.editor.appendChild(span);
-         this.editor.appendChild(document.createTextNode('\u00A0'));
-      } else {
-        range.deleteContents();
-        range.insertNode(span);
-        
-        // 插入后将光标移动到标签后面
-        range.setStartAfter(span);
-        range.setEndAfter(span);
-        
-        // 插入一个空格，防止在标签内输入
-        const space = document.createTextNode('\u00A0');
-        range.insertNode(space);
-        range.setStartAfter(space);
-        range.setEndAfter(space);
-        
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
+      // 移动光标到最后
+      range = document.createRange();
+      range.selectNodeContents(this.editor);
+      range.collapse(false);
+    } else if (range) {
+      // 在光标处插入
+      range.deleteContents();
+      range.insertNode(span);
+      
+      // 插入后将光标移动到标签后面
+      range.setStartAfter(span);
+      range.setEndAfter(span);
+      
+      // 插入一个空格，防止在标签内输入
+      range.insertNode(space);
+      range.setStartAfter(space);
+      range.setEndAfter(space);
+    }
+
+    // 恢复/设置光标
+    if (range) {
+        const newSelection = window.getSelection();
+        if (newSelection) {
+            newSelection.removeAllRanges();
+            newSelection.addRange(range);
+        }
     }
 
     this.triggerChange();
