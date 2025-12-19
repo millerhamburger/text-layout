@@ -23,6 +23,7 @@ export class FieldOrchestrator {
   private container: HTMLElement;
   private editor: HTMLDivElement;
   private options: OrchestratorOptions;
+  private lastRange: Range | null = null;
 
   constructor(options: OrchestratorOptions) {
     this.options = options;
@@ -61,7 +62,21 @@ export class FieldOrchestrator {
     this.container.addEventListener('click', this.handleContainerClick);
 
     this.container.appendChild(this.editor);
+    
+    // 监听选区变化，记录最后的光标位置
+    document.addEventListener('selectionchange', this.handleSelectionChange);
   }
+
+  private handleSelectionChange = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      // 只记录在编辑器内的光标位置
+      if (this.editor.contains(range.commonAncestorContainer)) {
+        this.lastRange = range.cloneRange();
+      }
+    }
+  };
 
   /**
    * 销毁实例，清理事件监听和DOM
@@ -70,6 +85,7 @@ export class FieldOrchestrator {
     this.editor.removeEventListener('paste', this.handlePaste);
     this.editor.removeEventListener('input', this.handleInput);
     this.container.removeEventListener('click', this.handleContainerClick);
+    document.removeEventListener('selectionchange', this.handleSelectionChange);
     
     if (this.editor.parentNode === this.container) {
       this.container.removeChild(this.editor);
@@ -107,16 +123,28 @@ export class FieldOrchestrator {
     // 先获取选区，判断焦点位置
     const selection = window.getSelection();
     let range = (selection && selection.rangeCount > 0) ? selection.getRangeAt(0) : null;
-    const isInside = range && this.editor.contains(range.commonAncestorContainer);
+    let isInside = range && this.editor.contains(range.commonAncestorContainer);
+
+    // 如果当前没有焦点或焦点不在编辑器内，尝试使用最后记录的光标位置
+    if (!isInside && this.lastRange && this.editor.contains(this.lastRange.commonAncestorContainer)) {
+        range = this.lastRange;
+        isInside = true;
+    }
 
     this.editor.focus();
+
+    // 恢复选区到计算出的 range
+    if (isInside && range && selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
 
     // 创建标签
     const span = this.createTokenNode(type, item);
     const space = document.createTextNode('\u00A0');
 
     if (!isInside) {
-      // 如果没有焦点或焦点不在编辑器内，追加到最后
+      // 如果没有焦点且没有历史记录，追加到最后
       this.editor.appendChild(span);
       this.editor.appendChild(space);
       
@@ -145,6 +173,8 @@ export class FieldOrchestrator {
         if (newSelection) {
             newSelection.removeAllRanges();
             newSelection.addRange(range);
+            // 更新最后光标位置
+            this.lastRange = range.cloneRange();
         }
     }
 
@@ -164,6 +194,7 @@ export class FieldOrchestrator {
    */
   public setValue(segments: Array<Segment>) {
     this.editor.innerHTML = ''; // 清空内容
+    this.lastRange = null; // 重置光标位置记录
     segments.forEach(segment => {
       if (segment.type === 'text') {
          this.editor.appendChild(document.createTextNode(String(segment.value)));
@@ -247,6 +278,7 @@ export class FieldOrchestrator {
   
   public clear() {
       this.editor.innerHTML = '';
+      this.lastRange = null;
       this.triggerChange();
   }
 
