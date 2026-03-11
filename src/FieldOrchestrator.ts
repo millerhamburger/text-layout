@@ -141,12 +141,10 @@ export class FieldOrchestrator {
 
     // 创建标签
     const span = this.createTokenNode(type, item);
-    const space = document.createTextNode('\u00A0');
 
     if (!isInside) {
       // 如果没有焦点且没有历史记录，追加到最后
       this.editor.appendChild(span);
-      this.editor.appendChild(space);
       
       // 移动光标到最后
       range = document.createRange();
@@ -160,11 +158,6 @@ export class FieldOrchestrator {
       // 插入后将光标移动到标签后面
       range.setStartAfter(span);
       range.setEndAfter(span);
-      
-      // 插入一个空格，防止在标签内输入
-      range.insertNode(space);
-      range.setStartAfter(space);
-      range.setEndAfter(space);
     }
 
     // 恢复/设置光标
