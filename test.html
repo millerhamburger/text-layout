@@ -90,6 +90,9 @@
             <div class="group-title">操作</div>
             <button onclick="setDemoValue()">设置复杂预设值</button>
             <button onclick="orchestrator.clear()">清空</button>
+            <label style="margin-left: 10px; cursor: pointer;">
+                <input type="checkbox" id="allowInput" checked onchange="toggleInput(this)"> 允许手动输入 (Allow Input)
+            </label>
         </div>
     </div>
 
@@ -101,18 +104,33 @@
     <script type="module">
         import { FieldOrchestrator } from './dist/index.esm.js';
 
+        const container = document.getElementById('editor-container');
         const outputEl = document.getElementById('output');
 
-        window.orchestrator = new FieldOrchestrator({
-            container: document.getElementById('editor-container'),
-            placeholder: '请输入内容，点击上方按钮插入不同类型的字段...',
-            onChange: (text, segments) => {
-                outputEl.innerText = JSON.stringify({
-                    text,
-                    segments
-                }, null, 2);
+        function initOrchestrator(allowInput = true) {
+            if (window.orchestrator) {
+                window.orchestrator.destroy();
+                // 清空容器内容，防止残留
+                container.innerHTML = '';
             }
-        });
+            window.orchestrator = new FieldOrchestrator({
+                container: container,
+                placeholder: '请输入内容，点击上方按钮插入不同类型的字段...',
+                allowInput: allowInput,
+                onChange: (text, segments) => {
+                    outputEl.innerText = JSON.stringify({
+                        text,
+                        segments
+                    }, null, 2);
+                }
+            });
+        }
+
+        initOrchestrator(true);
+
+        window.toggleInput = (checkbox) => {
+             initOrchestrator(checkbox.checked);
+        };
 
         window.insertToken = (type, value, label, extra = {}) => {
             window.orchestrator.insertToken(type, { label, value, ...extra });

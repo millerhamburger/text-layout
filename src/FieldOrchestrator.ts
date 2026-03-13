@@ -17,6 +17,7 @@ export interface OrchestratorOptions {
   container: HTMLElement;
   onChange?: (value: string, segments: Array<Segment>) => void;
   placeholder?: string;
+  allowInput?: boolean; // 是否允许手动输入，默认true
 }
 
 export class FieldOrchestrator {
@@ -24,18 +25,61 @@ export class FieldOrchestrator {
   private editor: HTMLDivElement;
   private options: OrchestratorOptions;
   private lastRange: Range | null = null;
+  private allowInput: boolean;
 
   constructor(options: OrchestratorOptions) {
     this.options = options;
     this.container = options.container;
     this.editor = document.createElement('div');
+    this.allowInput = options.allowInput !== false; // 默认为true
     this.init();
   }
 
   private handlePaste = (e: ClipboardEvent) => {
     e.preventDefault();
+    if (!this.allowInput) return;
     const text = e.clipboardData?.getData('text/plain') || '';
     document.execCommand('insertText', false, text);
+  };
+
+  private handleBeforeInput = (e: InputEvent) => {
+    if (!this.allowInput) {
+        // 禁止输入的类型
+        const blockedTypes = [
+            'insertText',
+            'insertCompositionText',
+            'insertFromPaste',
+            'insertFromDrop',
+            'insertReplacementText',
+            'insertParagraph',
+            'insertLineBreak'
+        ];
+        if (blockedTypes.includes(e.inputType)) {
+            e.preventDefault();
+        }
+    }
+  };
+
+  private handleKeyDown = (e: KeyboardEvent) => {
+    if (!this.allowInput) {
+        // 允许的功能键：删除、光标移动、全选/复制/粘贴
+        const allowedKeys = [
+            'Backspace', 'Delete', 
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 
+            'Home', 'End', 'PageUp', 'PageDown',
+            'Tab', 'Escape'
+        ];
+        
+        // 允许组合键 (Ctrl/Cmd + key)
+        if (e.ctrlKey || e.metaKey) {
+            return;
+        }
+
+        // 如果不是允许的键，且是单字符输入或Enter，则阻止
+        if (!allowedKeys.includes(e.key)) {
+             e.preventDefault();
+        }
+    }
   };
 
   private handleInput = () => {
@@ -55,6 +99,12 @@ export class FieldOrchestrator {
     
     // 处理粘贴事件，去除格式
     this.editor.addEventListener('paste', this.handlePaste);
+
+    // 处理输入前事件，用于拦截
+    this.editor.addEventListener('beforeinput', this.handleBeforeInput);
+
+    // 处理键盘按下事件，阻止输入
+    this.editor.addEventListener('keydown', this.handleKeyDown);
 
     this.editor.addEventListener('input', this.handleInput);
 
@@ -83,6 +133,8 @@ export class FieldOrchestrator {
    */
   public destroy() {
     this.editor.removeEventListener('paste', this.handlePaste);
+    this.editor.removeEventListener('beforeinput', this.handleBeforeInput);
+    this.editor.removeEventListener('keydown', this.handleKeyDown);
     this.editor.removeEventListener('input', this.handleInput);
     this.container.removeEventListener('click', this.handleContainerClick);
     document.removeEventListener('selectionchange', this.handleSelectionChange);

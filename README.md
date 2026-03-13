@@ -41,6 +41,7 @@ const container = document.getElementById('editor-container');
 const orchestrator = new FieldOrchestrator({
   container: container,
   placeholder: '请输入内容...',
+  allowInput: true, // 可选，默认为 true。设为 false 时禁止用户通过键盘输入文本，只能插入 Token
   onChange: (text, segments) => {
     console.log('当前文本:', text);
     console.log('结构化数据:', segments);
